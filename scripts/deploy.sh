@@ -12,6 +12,10 @@ TMP_DIR="/tmp/deploy_$$"
 APP_NAME="dumbapp"
 APP_USER="appuser"
 
+# Setting revision 
+if [ ! -z $1 ]; then
+	GIT_REVISION=$1
+fi
 
 echo "Starting deployment"
 echo "Preparing deployment package"

@@ -82,13 +82,13 @@ _subnet_id=$(aws ec2 describe-subnets | jq '.Subnets[1].SubnetId' | sed 's/"//g'
 check_status $? "Getting subnet-id failed"
 _instance_ids=$(aws ec2 run-instances --image-id $AMI_ID --count $_instance_count --instance-type $_instance_type --key-name $KEY_NAME --subnet-id $_subnet_id --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=$TAG_NAME}]" --associate-public-ip-address --security-group-ids $_sg_id  --user-data file://userdata.sh | jq '.Instances[].InstanceId' | sed 's/"//g' | tr '\n' ' ')
 check_status $? "Instance creation failed"
-echo "Waiting for instance to get up"
+echo "Waiting for instance to get up..."
 aws ec2 wait instance-running --instance-ids $_instance_ids
-echo "Configuring basic packages"
+echo "Configuring basic packages..."
 sleep 180 
 
 # Deployement
 bash deploy.sh
 
-echo "Servers are ready. IP address"
+echo "Server(s) are ready. IP address(es)"
 aws ec2 describe-instances --filters "Name=tag:Name,Values=$TAG_NAME" "Name=instance-state-name,Values=running" | jq '.Reservations[].Instances[].PublicIpAddress' | sed 's/"//g'
