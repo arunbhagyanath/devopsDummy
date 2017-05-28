@@ -85,7 +85,10 @@ check_status $? "Instance creation failed"
 echo "Waiting for instance to get up"
 aws ec2 wait instance-running --instance-ids $_instance_ids
 echo "Configuring basic packages"
-sleep 30 
+sleep 180 
 
 # Deployement
 bash deploy.sh
+
+echo "Servers are ready. IP address"
+aws ec2 describe-instances --filters "Name=tag:Name,Values=$TAG_NAME" "Name=instance-state-name,Values=running" | jq '.Reservations[].Instances[].PublicIpAddress' | sed 's/"//g'
