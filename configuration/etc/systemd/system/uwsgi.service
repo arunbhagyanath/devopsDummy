@@ -3,11 +3,12 @@ Description=uWSGI Emperor service
 
 [Service]
 ExecStartPre=/bin/bash -c "mkdir -p /run/uwsgi; chown appuser:www-data /run/uwsgi"
-ExecStart=/usr/local/bin/uwsgi --emperor /etc/uwsgi/sites
+ExecStart=/usr/local/bin/uwsgi --emperor /etc/uwsgi
 Restart=always
 KillSignal=SIGQUIT
 Type=notify
 NotifyAccess=all
+Environment=MYRA__SENTRY_DSN=https://588e11571544139bf6de9108ea01610:23c0539db46f4af2a6eb3e1243e2cf81@sentry.io/172503
 
 [Install]
 WantedBy=multi-user.target

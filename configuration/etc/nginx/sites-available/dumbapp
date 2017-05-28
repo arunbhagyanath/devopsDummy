@@ -3,6 +3,6 @@ server {
 
     location / {
         include         uwsgi_params;
-        uwsgi_pass      unix:/run/uwsgi/$APP_NAME.sock;
+        uwsgi_pass      unix:/run/uwsgi/dumbapp.sock;
     }
 }
