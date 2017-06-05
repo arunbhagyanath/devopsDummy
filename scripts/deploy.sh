@@ -28,7 +28,7 @@ if [ $GIT_REVISION != "HEAD" ]; then
 fi
 tar -czf $TMP_DIR/${GIT_PROJECT}_${GIT_REVISION}.tar.gz app configuration
 # Getting instance IPs
-_instance_ips=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=$TAG_NAME" "Name=instance-state-name,Values=running" | jq '.Reservations[].Instances[].PublicIpAddress' | sed 's/"//g' | tr '\n' ' ')
+_instance_ips=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=$TAG_NAME" "Name=instance-state-name,Values=running" --region $AWS_REGION --output json | jq '.Reservations[].Instances[].PublicIpAddress' | sed 's/"//g' | tr '\n' ' ')
 for _instance_ip in $_instance_ips; do
 	ssh -i $HOME/${KEY_NAME}.pem -o StrictHostKeyChecking=no $LOGIN_USER@$_instance_ip "sudo service nginx stop; sudo service uwsgi stop; mkdir $TMP_DIR"
 	scp -i $HOME/${KEY_NAME}.pem -o StrictHostKeyChecking=no $TMP_DIR/${GIT_PROJECT}_${GIT_REVISION}.tar.gz $LOGIN_USER@$_instance_ip:$TMP_DIR

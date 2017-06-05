@@ -51,39 +51,39 @@ function check_status {
 
 # Create key pair
 echo "Creating key pair..."
-aws ec2 describe-key-pairs --key-name $KEY_NAME > /dev/null 2>&1
+aws ec2 describe-key-pairs --key-name $KEY_NAME  --region $AWS_REGION --output json > /dev/null 2>&1
 if [ $? -eq 0 ]; then
 	echo  "$KEY_NAME already exists"
 	exit 1
 fi
-echo -e `aws ec2 create-key-pair --key-name $KEY_NAME | jq '.KeyMaterial' | sed 's/\"//g'` > $HOME/${KEY_NAME}.pem
+echo -e `aws ec2 create-key-pair --key-name $KEY_NAME --region $AWS_REGION --output json | jq '.KeyMaterial' | sed 's/\"//g'` > $HOME/${KEY_NAME}.pem
 check_status $? "Key pair creation failed"
 chmod 600 $HOME/${KEY_NAME}.pem
 check_status $? "Changing permission of pem file failed"
 
 # Create SG
 echo "Creating SG..."
-aws ec2 describe-security-groups --group-name $SG_NAME > /dev/null 2>&1
+aws ec2 describe-security-groups --group-name $SG_NAME --region $AWS_REGION --output json > /dev/null 2>&1
 if [ $? -eq 0 ]; then
 	echo  "$SG_NAME already exists"
 	exit 1
 fi
-_sg_id=$(aws ec2 create-security-group --group-name $SG_NAME --description "$SG_NAME" | jq '.GroupId' | sed 's/"//g')
+_sg_id=$(aws ec2 create-security-group --group-name $SG_NAME --description "$SG_NAME" --region $AWS_REGION --output json | jq '.GroupId' | sed 's/"//g')
 check_status $? "SG creation failed"
-aws ec2 authorize-security-group-ingress --group-id $_sg_id --protocol tcp --port 22 --cidr 0.0.0.0/0
+aws ec2 authorize-security-group-ingress --group-id $_sg_id --protocol tcp --port 22 --cidr 0.0.0.0/0 --region $AWS_REGION --output json
 check_status $? "Whitelisting SSH port failed"
-aws ec2 authorize-security-group-ingress --group-id $_sg_id --protocol tcp --port 80 --cidr 0.0.0.0/0
+aws ec2 authorize-security-group-ingress --group-id $_sg_id --protocol tcp --port 80 --cidr 0.0.0.0/0 --region $AWS_REGION --output json
 check_status $? "Whitelisting HTTP port failed"
 
 
 # Create instance
 echo "Creating $_instance_count instance(s) with $_instance_type..."
-_subnet_id=$(aws ec2 describe-subnets | jq '.Subnets[1].SubnetId' | sed 's/"//g')
+_subnet_id=$(aws ec2 describe-subnets --region $AWS_REGION --output json| jq '.Subnets[1].SubnetId' | sed 's/"//g')
 check_status $? "Getting subnet-id failed"
-_instance_ids=$(aws ec2 run-instances --image-id $AMI_ID --count $_instance_count --instance-type $_instance_type --key-name $KEY_NAME --subnet-id $_subnet_id --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=$TAG_NAME}]" --associate-public-ip-address --security-group-ids $_sg_id  --user-data file://userdata.sh | jq '.Instances[].InstanceId' | sed 's/"//g' | tr '\n' ' ')
+_instance_ids=$(aws ec2 run-instances --image-id $AMI_ID --count $_instance_count --instance-type $_instance_type --key-name $KEY_NAME --subnet-id $_subnet_id --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=$TAG_NAME}]" --associate-public-ip-address --security-group-ids $_sg_id  --user-data file://userdata.sh --region $AWS_REGION --output json | jq '.Instances[].InstanceId' | sed 's/"//g' | tr '\n' ' ')
 check_status $? "Instance creation failed"
 echo "Waiting for instance to get up..."
-aws ec2 wait instance-running --instance-ids $_instance_ids
+aws ec2 wait instance-running --instance-ids $_instance_ids --region $AWS_REGION --output json
 echo "Configuring basic packages..."
 sleep 180 
 
@@ -91,4 +91,4 @@ sleep 180
 bash deploy.sh
 
 echo "Server(s) are ready. IP address(es)"
-aws ec2 describe-instances --filters "Name=tag:Name,Values=$TAG_NAME" "Name=instance-state-name,Values=running" | jq '.Reservations[].Instances[].PublicIpAddress' | sed 's/"//g'
+aws ec2 describe-instances --filters "Name=tag:Name,Values=$TAG_NAME" "Name=instance-state-name,Values=running"  --region $AWS_REGION --output json | jq '.Reservations[].Instances[].PublicIpAddress' | sed 's/"//g'
