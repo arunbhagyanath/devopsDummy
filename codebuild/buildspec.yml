@@ -4,6 +4,8 @@ phases:
     commands:
       - echo Logging in to Docker Hub...
       - docker login -u $USERNAME -p $PASSWORD
+      - echo Cloning repositary..
+      - git clone https://github.com/arunbhagyanath/NagiosPlugins.git
   build:
     commands:
       - echo Entered the build phase...
