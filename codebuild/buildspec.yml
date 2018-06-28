@@ -4,7 +4,7 @@ phases:
     commands:
       - echo Entered the build phase...
       - echo Build started on `date`
-      - docker build -t hello-world:latest .
+      - docker build -t hello-world:latest -f codebuild/Dockerfile
   post_build:
     commands:
       - echo Build completed on `date`
