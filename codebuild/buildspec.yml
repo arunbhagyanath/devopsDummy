@@ -1,11 +1,16 @@
 version: 0.2
 phases:
+  pre_build:
+    commands:
+      - echo Logging in to Docker Hub...
+      - docker login -u $USERNAME -p $PASSWORD
   build:
     commands:
       - echo Entered the build phase...
       - echo Build started on `date`
-      - docker build -t hello-world:latest  -f codebuild/Dockerfile codebuild
+      - docker build -t arunbhagyanath/devopsdummy:latest  -f codebuild/Dockerfile codebuild
   post_build:
     commands:
       - echo Build completed on `date`
       - echo Pushing the Docker image...
+      - docker push arunbhagyanath/devopsdummy:latest
