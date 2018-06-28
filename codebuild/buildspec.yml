@@ -1,0 +1,10 @@
+phases:
+  build:
+    commands:
+      - echo Entered the build phase...
+      - echo Build started on `date`
+      - docker build -t hello-world:latest
+  post_build:
+    commands:
+      - echo Build completed on `date`
+      - echo Pushing the Docker image...
